@@ -1,18 +1,18 @@
 string DPToString(double val, int dp) {
     string processedBody;
     string body = val.ToString(Constants.NO_SCI_FORMAT);
-    int bodyDotIndex = body.Length;
+    int dotIndex = body.Length;
     for(int i = 0; i < body.Length; i++) {
         if(body[i] == '.') {
-            bodyDotIndex = i;
+            dotIndex = i;
             break;
         }
     }
     if(dp > 0) {
-        int originalDP = Math.Max(body.Length - bodyDotIndex - 1, 0);
+        int originalDP = Math.Max(body.Length - dotIndex - 1, 0);
 
         if(originalDP < dp) {
-            processedBody = body + (body.Length == bodyDotIndex ? "." : "");
+            processedBody = body + (dotIndex == body.Length ? "." : "");
             for(int i = dp - originalDP; i > 0; i--) {
                 processedBody += "0";
             }
@@ -20,23 +20,28 @@ string DPToString(double val, int dp) {
         else if(originalDP == dp) {
             processedBody = body;
         }
-        else {  // originalDP > precision
+        else {  // originalDP > dp
             processedBody = val.ToString("0." + new string('#', dp));
+            bool hasDot = false;
+            for(int i = 0; i < processedBody.Length; i++) {
+                if(processedBody[i] == '.') {
+                    hasDot = true;
+                    break;
+                }
+            }
+            if(!hasDot) processedBody += ".";
+            while(processedBody.Length < dotIndex + 1 + dp) processedBody += "0";
         }
     }
     else if(dp == 0) {
         processedBody = val.ToString("#");
     }
-    else {  // precision < 0
-        if(1 - dp > bodyDotIndex) {
-            processedBody = "0";
-        }
-        else {
-            processedBody = val.ToString("#").Substring(0, bodyDotIndex + dp);
-            for(int i = 0; i < -dp; i++) {
-                processedBody += "0";
-            }
-        }
+    else {  // dp < 0
+        double shifter = 1.0;
+        for(int i = 0; i < -dp; i++) shifter *= 10.0;
+        string shiftedVal = (val / shifter).ToString("#");
+        if(shiftedVal.Length == 0) shiftedVal = "0";
+        processedBody = (int.Parse(shiftedVal) * ((int)shifter)).ToString();
     }
     return processedBody;
 }
